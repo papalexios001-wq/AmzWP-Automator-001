@@ -1440,7 +1440,8 @@ const callAIProvider = async (
   try {
     switch (provider) {
       case 'gemini': {
-        const apiKey = config.geminiApiKey || process.env.API_KEY;
+        const rawKey = config.geminiApiKey || process.env.API_KEY;
+        const apiKey = rawKey ? SecureStorage.decrypt(rawKey) || rawKey : '';
         if (!apiKey) throw new Error('Gemini API key not configured');
         
         const ai = new GoogleGenAI({ apiKey });
@@ -1456,7 +1457,8 @@ const callAIProvider = async (
       }
 
       case 'openai': {
-        const apiKey = config.openaiApiKey;
+        const rawKey = config.openaiApiKey;
+        const apiKey = rawKey ? SecureStorage.decrypt(rawKey) || rawKey : '';
         if (!apiKey) throw new Error('OpenAI API key not configured');
         
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -1474,13 +1476,18 @@ const callAIProvider = async (
             response_format: { type: 'json_object' },
           }),
         });
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`OpenAI API error (${response.status}): ${errText.substring(0, 200)}`);
+        }
         const data = await response.json();
         if (data.error) throw new Error(data.error.message);
         return { text: data.choices?.[0]?.message?.content || '', provider: 'openai' };
       }
 
       case 'anthropic': {
-        const apiKey = config.anthropicApiKey;
+        const rawKey = config.anthropicApiKey;
+        const apiKey = rawKey ? SecureStorage.decrypt(rawKey) || rawKey : '';
         if (!apiKey) throw new Error('Anthropic API key not configured');
         
         const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1497,13 +1504,18 @@ const callAIProvider = async (
             messages: [{ role: 'user', content: userPrompt }],
           }),
         });
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Anthropic API error (${response.status}): ${errText.substring(0, 200)}`);
+        }
         const data = await response.json();
         if (data.error) throw new Error(data.error.message);
         return { text: data.content?.[0]?.text || '', provider: 'anthropic' };
       }
 
       case 'groq': {
-        const apiKey = config.groqApiKey;
+        const rawKey = config.groqApiKey;
+        const apiKey = rawKey ? SecureStorage.decrypt(rawKey) || rawKey : '';
         if (!apiKey) throw new Error('Groq API key not configured');
         
         const model = config.customModel || 'llama-3.3-70b-versatile';
@@ -1516,38 +1528,47 @@ const callAIProvider = async (
           body: JSON.stringify({
             model,
             messages: [
-              { role: 'system', content: systemPrompt },
+              { role: 'system', content: systemPrompt + '\n\nRespond with valid JSON only.' },
               { role: 'user', content: userPrompt },
             ],
-            response_format: { type: 'json_object' },
           }),
         });
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Groq API error (${response.status}): ${errText.substring(0, 200)}`);
+        }
         const data = await response.json();
         if (data.error) throw new Error(data.error.message);
         return { text: data.choices?.[0]?.message?.content || '', provider: 'groq' };
       }
 
       case 'openrouter': {
-        const apiKey = config.openrouterApiKey;
+        const rawKey = config.openrouterApiKey;
+        const apiKey = rawKey ? SecureStorage.decrypt(rawKey) || rawKey : '';
         if (!apiKey) throw new Error('OpenRouter API key not configured');
         
         const model = config.customModel || 'anthropic/claude-3.5-sonnet';
+        const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://amzpilot.app';
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': 'https://amzpilot.app',
+            'HTTP-Referer': siteUrl,
+            'X-Title': 'AmzPilot',
           },
           body: JSON.stringify({
             model,
             messages: [
-              { role: 'system', content: systemPrompt },
+              { role: 'system', content: systemPrompt + '\n\nRespond with valid JSON only.' },
               { role: 'user', content: userPrompt },
             ],
-            response_format: { type: 'json_object' },
           }),
         });
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`OpenRouter API error (${response.status}): ${errText.substring(0, 200)}`);
+        }
         const data = await response.json();
         if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
         return { text: data.choices?.[0]?.message?.content || '', provider: 'openrouter' };

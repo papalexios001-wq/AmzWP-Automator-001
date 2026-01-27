@@ -13,6 +13,11 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ onSave, initialConfig 
       ...initialConfig,
       amazonAccessKey: SecureStorage.decrypt(initialConfig.amazonAccessKey || ''),
       amazonSecretKey: SecureStorage.decrypt(initialConfig.amazonSecretKey || ''),
+      geminiApiKey: SecureStorage.decrypt(initialConfig.geminiApiKey || ''),
+      openaiApiKey: SecureStorage.decrypt(initialConfig.openaiApiKey || ''),
+      anthropicApiKey: SecureStorage.decrypt(initialConfig.anthropicApiKey || ''),
+      groqApiKey: SecureStorage.decrypt(initialConfig.groqApiKey || ''),
+      openrouterApiKey: SecureStorage.decrypt(initialConfig.openrouterApiKey || ''),
   });
   
   const [isOpen, setIsOpen] = useState(false);
@@ -24,7 +29,12 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ onSave, initialConfig 
     onSave({
         ...config,
         amazonAccessKey: SecureStorage.encrypt(config.amazonAccessKey),
-        amazonSecretKey: SecureStorage.encrypt(config.amazonSecretKey)
+        amazonSecretKey: SecureStorage.encrypt(config.amazonSecretKey),
+        geminiApiKey: SecureStorage.encrypt(config.geminiApiKey || ''),
+        openaiApiKey: SecureStorage.encrypt(config.openaiApiKey || ''),
+        anthropicApiKey: SecureStorage.encrypt(config.anthropicApiKey || ''),
+        groqApiKey: SecureStorage.encrypt(config.groqApiKey || ''),
+        openrouterApiKey: SecureStorage.encrypt(config.openrouterApiKey || ''),
     });
     setIsOpen(false);
   };
