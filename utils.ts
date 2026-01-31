@@ -126,16 +126,13 @@ class IntelligenceCacheClass {
 }
 
   cleanup(): void {
-    const now = Date.now();
-    const expiredKeys: string[] = [];
+    this.cache.clear();
     
-    // Find expired entries
-    this.cache.forEach((entry, key) => {
-      if (now > entry.timestamp + entry.ttl) {
-        expiredKeys.push(key);
-      }
-    });
-    
+    try {
+      const keys = Object.keys(localStorage).filter(k => k.startsWith(CACHE_PREFIX));
+      keys.forEach(k => localStorage.removeItem(k));
+    } catch {}
+  }    
     // Remove expired entries
     expiredKeys.forEach(key => this.cache.delete(key));
     
