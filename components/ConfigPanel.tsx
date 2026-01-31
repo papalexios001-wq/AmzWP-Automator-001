@@ -29,7 +29,7 @@ interface ConfigPanelProps {
 }
 
 type ConfigTab = 'wp' | 'amazon' | 'ai' | 'sota';
-type TestStatus = 'idle' | 'testing' | 'success' | 'error';
+type TestConnectionStatus = 'idle' | 'testing' | 'success' | 'error';
 
 interface TabConfig {
   id: ConfigTab;
@@ -412,7 +412,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ onSave, initialConfig 
   // ========== STATE ==========
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<ConfigTab>('wp');
-  const [testStatus, setTestStatus] = useState<TestStatus>('idle');
+  const [testConnectionStatus, setTestConnectionStatus] = useState<TestConnectionStatus>('idle');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
 
@@ -485,9 +485,9 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ onSave, initialConfig 
       } else {
                 toast.success('✓ Connected to WordPress!');
                 toast.error(result.message || 'Connection failed');
-          
+      setTestConnectionStatus('success');
     } catch (error: any) {
-      setTestStatus('error');
+      setTestConnectionStatus('error');
             toast.error(error.message || 'Connection failed');
         
   }, [config]);
@@ -522,7 +522,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ onSave, initialConfig 
   const handleClose = useCallback(() => {
     setIsOpen(false);
     setValidationErrors({});
-    setTestStatus('idle');
+    setTestConnectionStatus('idle');
   }, []);
 
   // ========== RENDER HELPERS ==========
@@ -565,26 +565,26 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ onSave, initialConfig 
       <button
         type="button"
         onClick={handleTestConnection}
-        disabled={testStatus === 'testing'}
+        disabled={testConnectionStatus === 'testing'}
         className={`w-full py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
-          testStatus === 'success'
+          testConnectionStatus === 'success'
             ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-            : testStatus === 'error'
+            : testConnectionStatus === 'error'
             ? 'bg-red-500/20 text-red-400 border border-red-500/30'
             : 'bg-dark-800 text-gray-400 border border-dark-700 hover:bg-dark-700 hover:text-white'
         }`}
       >
-        {testStatus === 'testing' ? (
+        {testConnectionStatus === 'testing' ? (
           <>
             <i className="fa-solid fa-spinner fa-spin" />
             Testing Connection...
           </>
-        ) : testStatus === 'success' ? (
+        ) : testConnectionStatus === 'success' ? (
           <>
             <i className="fa-solid fa-check-circle" />
             Connection Verified
           </>
-        ) : testStatus === 'error' ? (
+        ) : testConnectionStatus === 'error' ? (
           <>
             <i className="fa-solid fa-times-circle" />
             Connection Failed - Retry
