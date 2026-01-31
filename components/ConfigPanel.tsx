@@ -491,7 +491,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({ onSave, initialConfig 
     } catch (error: any) {
       setTestConnectionStatus('error');
             toast.error(error.message || 'Connection failed');
-        
+  }        
   }, [config]);
 
   const handleSubmit = useCallback((e: React.FormEvent) => {
